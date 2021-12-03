@@ -20,9 +20,4 @@ Jenkins和GitLab之间没有依赖关系，可分别按需部署。
 kubectl logs $(kubectl get pods -n jenkins | awk '{print $1}' | grep jenkins) -n jenkins
 ```
 
-## 课程视频
-[马哥教育](www.magedu.com)录制了基于Jenkins和GitLab的CICD视频，请有需要的朋友至马哥教育网站上找课程顾问了解相关的信息。
 
-## iKubernetes公众号
-
-![ikubernetes公众号二维码](https://github.com/iKubernetes/Kubernetes_Advanced_Practical_2rd/raw/main/imgs/iKubernetes%E5%85%AC%E4%BC%97%E5%8F%B7%E4%BA%8C%E7%BB%B4%E7%A0%81.jpg)
