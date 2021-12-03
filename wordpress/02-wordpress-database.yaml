@@ -1,0 +1,77 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: wpdb-user-and-password
+  namespace: wordpress
+data:
+  password: d3BwYXNzQG1hZ2VkdS5jb20=
+  username: d3B1c2Vy
+type: Opaque
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: wpdb-headless
+  namespace: wordpress
+  labels:
+    app: wpdb
+spec:
+  clusterIP: None
+  ports:
+  - port: 3306
+  selector:
+    app: wpdb
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    app: wpdb
+  name: wpdb
+  namespace: wordpress
+spec:
+  serviceName: wpdb-headless
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wpdb
+  template:
+    metadata:
+      labels:
+        app: wpdb
+    spec:
+      containers:
+      - image: mysql:5.7
+        name: wpdb
+        env:
+        - name: MYSQL_RANDOM_ROOT_PASSWORD
+          value: '1'
+        - name: MYSQL_DATABASE
+          value: wpdb
+        - name: MYSQL_USER
+          valueFrom:
+            secretKeyRef:
+              name: wpdb-user-and-password
+              key: username
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: wpdb-user-and-password
+              key: password
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: wpdb
+  name: wpdb
+  namespace: wordpress
+spec:
+  ports:
+  - name: "3306"
+    port: 3306
+    protocol: TCP
+    targetPort: 3306
+  selector:
+    app: wpdb
+  type: ClusterIP

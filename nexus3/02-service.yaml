@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: sonatype-nexus
+  namespace: nexus
+  labels:
+    app: sonatype-nexus
+  annotations:
+    # 提示：请根据实际可用的ELB信息修改如下三个注解信息的值；
+    kubernetes.io/elb.class: union
+    kubernetes.io/elb.id: a27c8dfa-a0b1-4f70-8453-6d997b2959ba
+    kubernetes.io/elb.mark: '0'
+spec:
+  type: LoadBalancer
+  ports:
+  - name: sonatype-nexus
+    port: 8081
+    targetPort: 8081
+    protocol: TCP
+  - name: docker-registry
+    port: 8082
+    targetPort: 8082
+    protocol: TCP
+  selector:
+    app: sonatype-nexus
+  # 请根据ELB上绑定的实际可用EIP修改如下属性值；
+  loadBalancerIP: 122.9.71.123
+  externalTrafficPolicy: Cluster
