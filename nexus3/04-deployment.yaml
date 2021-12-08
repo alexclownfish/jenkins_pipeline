@@ -3,7 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: sonatype-nexus
-  namespace: nexus
+  namespace: cicd
   labels:
     app: sonatype-nexus
 spec:

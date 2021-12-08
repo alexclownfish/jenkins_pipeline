@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: sonatype-nexus
-  namespace: nexus
+  namespace: cicd
   labels:
     app: sonatype-nexus
   annotations:
@@ -11,7 +11,7 @@ metadata:
     kubernetes.io/elb.id: a27c8dfa-a0b1-4f70-8453-6d997b2959ba
     kubernetes.io/elb.mark: '0'
 spec:
-  type: LoadBalancer
+  type: ClusterIP
   ports:
   - name: sonatype-nexus
     port: 8081
@@ -24,5 +24,5 @@ spec:
   selector:
     app: sonatype-nexus
   # 请根据ELB上绑定的实际可用EIP修改如下属性值；
-  loadBalancerIP: 122.9.71.123
-  externalTrafficPolicy: Cluster
+  #loadBalancerIP: 122.9.71.123
+  #externalTrafficPolicy: Cluster

@@ -4,7 +4,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: cce-evs-jenkins
-  namespace: jenkins
+  namespace: cicd
   annotations:
     everest.io/disk-volume-type: SAS
   labels:
@@ -16,5 +16,5 @@ spec:
   resources:
     requests:
       storage: 20Gi
-  storageClassName: csi-disk
+  storageClassName: nfs-storage
 ---

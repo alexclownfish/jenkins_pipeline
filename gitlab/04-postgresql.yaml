@@ -4,7 +4,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: cce-evs-pgsql
-  namespace: gitlab
+  namespace: cicd
   annotations:
     everest.io/disk-volume-type: SAS
   labels:
@@ -16,14 +16,14 @@ spec:
   resources:
     requests:
       storage: 10Gi
-  storageClassName: csi-disk
+  storageClassName: nfs-storage
 ---
 ## Service
 kind: Service
 apiVersion: v1
 metadata:
   name: gitlab-postgresql
-  namespace: gitlab
+  namespace: cicd
   labels:
     app: gitlab-postgresql
 spec:
@@ -41,7 +41,7 @@ kind: Deployment
 apiVersion: apps/v1
 metadata:
   name: gitlab-pgsql
-  namespace: gitlab
+  namespace: cicd
   labels:
     app: postgresql
 spec:

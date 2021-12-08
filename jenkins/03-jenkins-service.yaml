@@ -3,21 +3,21 @@ apiVersion: v1
 kind: Service
 metadata:
   name: jenkins
-  namespace: jenkins 
+  namespace: cicd
   labels:
     app: jenkins
   annotations:
     # 提示：需要根据实际可用的ELB信息修改如下属性值；
-    kubernetes.io/elb.class: union
-    kubernetes.io/elb.id: a27c8dfa-a0b1-4f70-8453-6d997b2959ba
-    kubernetes.io/elb.mark: '0'
+    #kubernetes.io/elb.class: union
+    #kubernetes.io/elb.id: a27c8dfa-a0b1-4f70-8453-6d997b2959ba
+    #kubernetes.io/elb.mark: '0'
 spec:
   selector:
     app: jenkins
-  type: LoadBalancer
+  type: NodePort
   # 提示：需要根据选定的ELB的可用外部IP地址修改如下字段的值；
-  loadBalancerIP: 122.9.71.123
-  externalTrafficPolicy: Cluster
+  #loadBalancerIP: 122.9.71.123
+  #externalTrafficPolicy: Cluster
   ports:
   - name: http
     port: 8080
@@ -27,7 +27,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: jenkins-jnlp
-  namespace: jenkins 
+  namespace: cicd
   labels:
     app: jenkins
 spec:
