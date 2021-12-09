@@ -4,7 +4,8 @@ pipeline {
         appVersion = "v1.0.3"
         registryCredential = "nexus3-admin"
         registry = "http://sonatype-nexus.cicd.svc.cluster.local:8082"
-        STATUS_URL = "http://xxxxx:31629/job/spring-boot-helloword/${BUILD_NUMBER}/"
+        STATUS_URL = "http://xxx:31629/job/spring-boot-helloword/${BUILD_NUMBER}/"
+        CONSOLE_URL = "http://xxx:31629/job/spring-boot-helloword/${BUILD_NUMBER}/console"
     }
     agent {
         kubernetes {
@@ -27,8 +28,10 @@ pipeline {
                         type: 'MARKDOWN',
                         title: 'spring-boot项目',
                         text: [
-                            '### spring-boot项目${appName}拉取代码失败',
-                            '[查看部署详情](${STATUS_URL})'
+                            '### spring-boot项目',
+                            '状态：${appName}拉取代码失败',
+                            '[查看部署详情](${STATUS_URL})',
+                            '[查看日志Console](${CONSOLE_URL})'
                         ],
                         at: [
                             '15737927244'
@@ -53,8 +56,10 @@ pipeline {
                         type: 'MARKDOWN',
                         title: 'spring-boot项目',
                         text: [
-                            '### spring-boot项目${appName}编译失败',
-                            '[查看部署详情](${STATUS_URL})'
+                            '### spring-boot项目',
+                            '状态：${appName}代码编译失败',
+                            '[查看部署详情](${STATUS_URL})',
+                            '[查看日志Console](${CONSOLE_URL})'
                         ],
                         at: [
                             '15737927244'
@@ -81,8 +86,10 @@ pipeline {
                         type: 'MARKDOWN',
                         title: 'spring-boot项目',
                         text: [
-                            '### spring-boot项目${appName}打包镜像失败',
-                            '[查看部署详情](${STATUS_URL})'
+                            '### spring-boot项目',
+                            '状态：${appName}镜像打包失败',
+                            '[查看部署详情](${STATUS_URL})',
+                            '[查看日志Console](${CONSOLE_URL})'
                         ],
                         at: [
                             '15737927244'
@@ -111,8 +118,10 @@ pipeline {
                         type: 'MARKDOWN',
                         title: 'spring-boot项目',
                         text: [
-                            '### spring-boot项目${appName}push镜像失败',
-                            '[查看部署详情](${STATUS_URL})'
+                            '### spring-boot项目',
+                            '状态：${appName}镜像推送失败',
+                            '[查看部署详情](${STATUS_URL})',
+                            '[查看日志Console](${CONSOLE_URL})'
                         ],
                         at: [
                             '15737927244'
@@ -132,8 +141,10 @@ pipeline {
                         type: 'MARKDOWN',
                         title: 'spring-boot项目',
                         text: [
-                            '### spring-boot项目${appName}拉取配置清单失败',
-                            '[查看部署详情](${STATUS_URL})'
+                            '### spring-boot项目',
+                            '状态：${appName}配置清单拉取失败',
+                            '[查看部署详情](${STATUS_URL})',
+                            '[查看日志Console](${CONSOLE_URL})'
                         ],
                         at: [
                             '15737927244'
@@ -163,8 +174,11 @@ pipeline {
                         type: 'MARKDOWN',
                         title: 'spring-boot项目',
                         text: [
-                            '### spring-boot项目${appName}滚动更新成功，版本：${BUILD_NUMBER}',
-                            '[查看部署详情](${STATUS_URL})'
+                            '### spring-boot项目',
+                            '状态：${appName}滚动更新成功',
+                            '版本：${BUILD_NUMBER}',
+                            '[查看部署详情](${STATUS_URL})',
+                            '[查看日志Console](${CONSOLE_URL})'
                         ],
                         at: [
                             '15737927244'
@@ -177,8 +191,11 @@ pipeline {
                         type: 'MARKDOWN',
                         title: 'spring-boot项目',
                         text: [
-                            '### spring-boot项目${appName}滚动更新失败，版本：${BUILD_NUMBER}',
-                            '[查看部署详情](${STATUS_URL})'
+                            '### spring-boot项目',
+                            '状态：${appName}滚动更新失败',
+                            '版本：${BUILD_NUMBER}',
+                            '[查看部署详情](${STATUS_URL})',
+                            '[查看日志Console](${CONSOLE_URL})'
                         ],
                         at: [
                             '15737927244'
@@ -208,8 +225,11 @@ pipeline {
                         type: 'MARKDOWN',
                         title: 'spring-boot项目',
                         text: [
-                            '### spring-boot项目${appName}，回滚至${BUILD_NUMBER}成功',
-                            '[查看部署详情](${STATUS_URL})'
+                            '### spring-boot项目',
+                            '状态：${appName}回滚成功',
+                            '回滚版本：${BUILD_NUMBER}',
+                            '[查看部署详情](${STATUS_URL})',
+                            '[查看日志Console](${CONSOLE_URL})'
                         ],
                         at: [
                             '15737927244'
@@ -222,8 +242,11 @@ pipeline {
                         type: 'MARKDOWN',
                         title: 'spring-boot项目',
                         text: [
-                            '### spring-boot项目${appName}，回滚至${BUILD_NUMBER}失败',
-                            '[查看部署详情](${STATUS_URL})'
+                            '### spring-boot项目',
+                            '状态：${appName}回滚失败',
+                            '回滚版本：${BUILD_NUMBER}',
+                            '[查看部署详情](${STATUS_URL})',
+                            '[查看日志Console](${CONSOLE_URL})'
                         ],
                         at: [
                             '15737927244'
