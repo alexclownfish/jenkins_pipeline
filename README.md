@@ -1,5 +1,19 @@
 ## jenkins gitlab nexus3/harbor 此类清单已有，安装部署不再叙述
+
+我这里ci/cd都在Jenkins同一个job内完成。如果ci/cd都在Jenkins中完成的话，正常的gitops应是ci/cd分为两个pipeline job完成，并通过gitlab webhook进行提交自动触发构建部署；或者ci在Jenkins中完成，cd通过argocd来完成纯自动化的devops。
+
+
+我这里没有使用纯自动化的原因是，不太喜欢纯自动化。后续会把这个文档gitlab配置nexus3/harbor配置完善起来。同时也写一下上边我说的Jenkins分为ci/cd两个job纯自动化构建部署，很ci使用jenkins，cd采用argocd。
+
+
+需准备：
+用于提交开发代码的gitlab代码仓库（拉取代码 => 编译源码 => 通过dockerfile打包镜像推送至仓库）
+
+用于存放yaml/helm资源清单配置文件（拉取配置清单 => sed修改镜像版本 => kubectl apply滚动更新或 rollback回滚）
+
+
 Github: https://github.com/alexclownfish/jenkins_pipline
+资源清单均在以上github地址
 * 版本发布失败/成功推送钉钉
 * 版本回滚成功/失败推送钉钉
 * 构建stage过程成功/失败推送钉钉
@@ -48,4 +62,265 @@ Localization: Chinese (Simplified)
 ![在这里插入图片描述](https://img-blog.csdnimg.cn/276993a1538c47c98f303b9bdfc89f2e.png?x-oss-process=image/watermark,type_d3F5LXplbmhlaQ,shadow_50,text_Q1NETiBAQWxleENsb3duZmlzaA==,size_20,color_FFFFFF,t_70,g_se,x_16)
 #### 配置Pipeline script from SCM （pipeline从代码仓库检出）
 ![在这里插入图片描述](https://img-blog.csdnimg.cn/2961be0afdba4656a5806f1b9beff2fe.png?x-oss-process=image/watermark,type_d3F5LXplbmhlaQ,shadow_50,text_Q1NETiBAQWxleENsb3duZmlzaA==,size_20,color_FFFFFF,t_70,g_se,x_16)
-
+## PIPELINE
+```
+pipeline {
+    environment {
+        appName = "spring-boot-helloword"
+        appVersion = "v1.0.3"
+        registryCredential = "nexus3-admin"
+        registry = "http://sonatype-nexus.cicd.svc.cluster.local:8082"
+        STATUS_URL = "http://xxx:31629/job/spring-boot-helloword/${BUILD_NUMBER}/"
+        CONSOLE_URL = "http://xxx:31629/job/spring-boot-helloword/${BUILD_NUMBER}/console"
+    }
+    agent {
+        kubernetes {
+            inheritFrom 'docker-and-maven-and-kubectl'
+        }
+    }
+    
+    stages {
+        stage ("PULL CODES FROM CANGKU") {
+            when {
+                environment name: 'action',value: 'deploy'
+            }
+            steps {
+                git branch: 'master', url: 'http://gitlab.cicd.svc.cluster.local:31080/root/spring-boot-demo.git'
+            }
+            post {
+                failure {
+                    dingtalk (
+                        robot: '1174f280-4f5a-43e7-aa2f-a062c3808993',
+                        type: 'MARKDOWN',
+                        title: 'spring-boot项目',
+                        text: [
+                            '### spring-boot项目',
+                            '状态：${appName}拉取代码失败',
+                            '[查看部署详情](${STATUS_URL})',
+                            '[查看日志Console](${CONSOLE_URL})'
+                        ],
+                        at: [
+                            '15737927244'
+                        ]
+                    )
+                }
+            }
+        }
+        stage ("BUILD JAR") {
+            when {
+                environment name: 'action',value: 'deploy'
+            }
+            steps {
+                container ('maven') {
+                    sh 'mvn clean test package'
+                }
+            }
+            post {
+                failure {
+                    dingtalk (
+                        robot: '1174f280-4f5a-43e7-aa2f-a062c3808993',
+                        type: 'MARKDOWN',
+                        title: 'spring-boot项目',
+                        text: [
+                            '### spring-boot项目',
+                            '状态：${appName}代码编译失败',
+                            '[查看部署详情](${STATUS_URL})',
+                            '[查看日志Console](${CONSOLE_URL})'
+                        ],
+                        at: [
+                            '15737927244'
+                        ]
+                    )
+                }
+            }
+        }
+        stage ("BUILDING APP IMAGE") {
+            when {
+                environment name: 'action',value: 'deploy'
+            }
+            steps {
+                container ('docker') {
+                    script {
+                        dockerImage = docker.build appName + ":" + appVersion + "-" + BUILD_NUMBER
+                    }
+                }
+            }
+            post {
+                failure {
+                    dingtalk (
+                        robot: '1174f280-4f5a-43e7-aa2f-a062c3808993',
+                        type: 'MARKDOWN',
+                        title: 'spring-boot项目',
+                        text: [
+                            '### spring-boot项目',
+                            '状态：${appName}镜像打包失败',
+                            '[查看部署详情](${STATUS_URL})',
+                            '[查看日志Console](${CONSOLE_URL})'
+                        ],
+                        at: [
+                            '15737927244'
+                        ]
+                    )
+                }
+            }
+        }
+        stage ("Push App Image") {
+            when {
+                environment name: 'action',value: 'deploy'
+            }
+            steps {
+                container('docker') {
+                    script {
+                        docker.withRegistry(registry,registryCredential) {
+                            dockerImage.push()
+                        }
+                    }
+                }
+            }
+            post {
+                failure {
+                    dingtalk (
+                        robot: '1174f280-4f5a-43e7-aa2f-a062c3808993',
+                        type: 'MARKDOWN',
+                        title: 'spring-boot项目',
+                        text: [
+                            '### spring-boot项目',
+                            '状态：${appName}镜像推送失败',
+                            '[查看部署详情](${STATUS_URL})',
+                            '[查看日志Console](${CONSOLE_URL})'
+                        ],
+                        at: [
+                            '15737927244'
+                        ]
+                    )
+                }
+            }
+        }
+        stage('Pull Source Config File') {
+            steps {
+                git branch: 'master',url:'http://gitlab.cicd.svc.cluster.local:31080/root/spring-boot-deploy.git'
+            }
+            post {
+                failure {
+                    dingtalk (
+                        robot: '1174f280-4f5a-43e7-aa2f-a062c3808993',
+                        type: 'MARKDOWN',
+                        title: 'spring-boot项目',
+                        text: [
+                            '### spring-boot项目',
+                            '状态：${appName}配置清单拉取失败',
+                            '[查看部署详情](${STATUS_URL})',
+                            '[查看日志Console](${CONSOLE_URL})'
+                        ],
+                        at: [
+                            '15737927244'
+                        ]
+                    )
+                }
+            }
+        }
+        stage('Apply App Yaml') {
+            when {
+                environment name: 'action',value: 'deploy'
+            }
+            steps {
+                container('kubectl') {
+                    withKubeConfig([credentialsId: 'k8s-cluster-admin-kubeconfig-file']) {
+                        sh '''
+                        sed -ri "s@image: .*@image: sonatype-nexus.cicd.svc.cluster.local:8082/${appName}:${appVersion}-${BUILD_NUMBER}@g"  deploy/03-deployment.yaml
+                        kubectl apply -f deploy/ --record
+                        '''
+                    }
+                }
+            }
+            post {
+                success {
+                    dingtalk (
+                        robot: '1174f280-4f5a-43e7-aa2f-a062c3808993',
+                        type: 'MARKDOWN',
+                        title: 'spring-boot项目',
+                        text: [
+                            '### spring-boot项目',
+                            '状态：${appName}滚动更新成功',
+                            '版本：${BUILD_NUMBER}',
+                            '[查看部署详情](${STATUS_URL})',
+                            '[查看日志Console](${CONSOLE_URL})'
+                        ],
+                        at: [
+                            '15737927244'
+                        ]
+                    )
+                }
+                failure {
+                    dingtalk (
+                        robot: '1174f280-4f5a-43e7-aa2f-a062c3808993',
+                        type: 'MARKDOWN',
+                        title: 'spring-boot项目',
+                        text: [
+                            '### spring-boot项目',
+                            '状态：${appName}滚动更新失败',
+                            '版本：${BUILD_NUMBER}',
+                            '[查看部署详情](${STATUS_URL})',
+                            '[查看日志Console](${CONSOLE_URL})'
+                        ],
+                        at: [
+                            '15737927244'
+                        ]
+                    )
+                }
+            }
+        }
+        stage('Rollback') {
+            when {
+                environment name: 'action',value: 'rollback'
+            }
+            steps {
+                container('kubectl') {
+                    withKubeConfig([credentialsId: 'k8s-cluster-admin-kubeconfig-file']) {
+                        sh '''
+                        sed -ri "s@image: .*@image: sonatype-nexus.cicd.svc.cluster.local:8082/${appName}:${appVersion}-${BUILD_NUMBER}@g"  deploy/03-deployment.yaml
+                        kubectl apply -f deploy/ --record
+                        '''
+                    }
+                }
+            }
+            post {
+                success {
+                    dingtalk (
+                        robot: '1174f280-4f5a-43e7-aa2f-a062c3808993',
+                        type: 'MARKDOWN',
+                        title: 'spring-boot项目',
+                        text: [
+                            '### spring-boot项目',
+                            '状态：${appName}回滚成功',
+                            '回滚版本：${BUILD_NUMBER}',
+                            '[查看部署详情](${STATUS_URL})',
+                            '[查看日志Console](${CONSOLE_URL})'
+                        ],
+                        at: [
+                            '15737927244'
+                        ]
+                    )
+                }
+                failure {
+                    dingtalk (
+                        robot: '1174f280-4f5a-43e7-aa2f-a062c3808993',
+                        type: 'MARKDOWN',
+                        title: 'spring-boot项目',
+                        text: [
+                            '### spring-boot项目',
+                            '状态：${appName}回滚失败',
+                            '回滚版本：${BUILD_NUMBER}',
+                            '[查看部署详情](${STATUS_URL})',
+                            '[查看日志Console](${CONSOLE_URL})'
+                        ],
+                        at: [
+                            '15737927244'
+                        ]
+                    )
+                }
+            }
+        }
+    }
+}
+```
