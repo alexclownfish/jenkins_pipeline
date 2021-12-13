@@ -70,8 +70,8 @@ pipeline {
         appVersion = "v1.0.3"
         registryCredential = "nexus3-admin"
         registry = "http://sonatype-nexus.cicd.svc.cluster.local:8082"
-        STATUS_URL = "http://xxx:31629/job/spring-boot-helloword/${BUILD_NUMBER}/"
-        CONSOLE_URL = "http://xxx:31629/job/spring-boot-helloword/${BUILD_NUMBER}/console"
+        STATUS_URL = "http://xxx/job/spring-boot-helloword/${BUILD_NUMBER}/"
+        CONSOLE_URL = "http://xxx/job/spring-boot-helloword/${BUILD_NUMBER}/console"
     }
     agent {
         kubernetes {
@@ -94,10 +94,12 @@ pipeline {
                         type: 'MARKDOWN',
                         title: 'spring-boot项目',
                         text: [
-                            '### spring-boot项目',
-                            '状态：${appName}拉取代码失败',
-                            '[查看部署详情](${STATUS_URL})',
-                            '[查看日志Console](${CONSOLE_URL})'
+                            '### Jenkins_job_spring-boot',
+                            '---',
+                            '- 状态：<font color=#FF0000 >${appName}拉取代码失败</font>',
+                            '- 版本：${BUILD_NUMBER}',
+                            '- [查看部署详情](${STATUS_URL})',
+                            '- [查看日志Console](${CONSOLE_URL})'
                         ],
                         at: [
                             '15737927244'
@@ -122,10 +124,12 @@ pipeline {
                         type: 'MARKDOWN',
                         title: 'spring-boot项目',
                         text: [
-                            '### spring-boot项目',
-                            '状态：${appName}代码编译失败',
-                            '[查看部署详情](${STATUS_URL})',
-                            '[查看日志Console](${CONSOLE_URL})'
+                            '### Jenkins_job_spring-boot',
+                            '---',
+                            '- 状态：<font color=#FF0000 >${appName}代码编译失败</font>',
+                            '- 版本：${BUILD_NUMBER}',
+                            '- [查看部署详情](${STATUS_URL})',
+                            '- [查看日志Console](${CONSOLE_URL})'
                         ],
                         at: [
                             '15737927244'
@@ -152,10 +156,12 @@ pipeline {
                         type: 'MARKDOWN',
                         title: 'spring-boot项目',
                         text: [
-                            '### spring-boot项目',
-                            '状态：${appName}镜像打包失败',
-                            '[查看部署详情](${STATUS_URL})',
-                            '[查看日志Console](${CONSOLE_URL})'
+                            '### Jenkins_job_spring-boot',
+                            '---',
+                            '- 状态：<font color=#FF0000 >${appName}镜像打包失败</font>',
+                            '- 版本：${BUILD_NUMBER}',
+                            '- [查看部署详情](${STATUS_URL})',
+                            '- [查看日志Console](${CONSOLE_URL})'
                         ],
                         at: [
                             '15737927244'
@@ -184,10 +190,12 @@ pipeline {
                         type: 'MARKDOWN',
                         title: 'spring-boot项目',
                         text: [
-                            '### spring-boot项目',
-                            '状态：${appName}镜像推送失败',
-                            '[查看部署详情](${STATUS_URL})',
-                            '[查看日志Console](${CONSOLE_URL})'
+                            '### Jenkins_job_spring-boot',
+                            '---',
+                            '- 状态：<font color=#FF0000 >${appName}推送镜像失败</font>',
+                            '- 版本：${BUILD_NUMBER}',
+                            '- [查看部署详情](${STATUS_URL})',
+                            '- [查看日志Console](${CONSOLE_URL})'
                         ],
                         at: [
                             '15737927244'
@@ -207,10 +215,12 @@ pipeline {
                         type: 'MARKDOWN',
                         title: 'spring-boot项目',
                         text: [
-                            '### spring-boot项目',
-                            '状态：${appName}配置清单拉取失败',
-                            '[查看部署详情](${STATUS_URL})',
-                            '[查看日志Console](${CONSOLE_URL})'
+                            '### Jenkins_job_spring-boot',
+                            '---',
+                            '- 状态：<font color=#FF0000 >${appName}配置清单拉取失败</font>',
+                            '- 版本：${BUILD_NUMBER}',
+                            '- [查看部署详情](${STATUS_URL})',
+                            '- [查看日志Console](${CONSOLE_URL})'
                         ],
                         at: [
                             '15737927244'
@@ -237,14 +247,15 @@ pipeline {
                 success {
                     dingtalk (
                         robot: '1174f280-4f5a-43e7-aa2f-a062c3808993',
-                        type: 'MARKDOWN',
+                        type: 'ACTION_CARD',
                         title: 'spring-boot项目',
                         text: [
-                            '### spring-boot项目',
-                            '状态：${appName}滚动更新成功',
-                            '版本：${BUILD_NUMBER}',
-                            '[查看部署详情](${STATUS_URL})',
-                            '[查看日志Console](${CONSOLE_URL})'
+                            '### Jenkins_job_spring-boot',
+                            '---',
+                            '- 状态：<font color=#00CD00 >${appName}滚动更新成功</font>',
+                            '- 版本：${BUILD_NUMBER}',
+                            '- [查看部署详情](${STATUS_URL})',
+                            '- [查看日志Console](${CONSOLE_URL})'
                         ],
                         at: [
                             '15737927244'
@@ -257,11 +268,12 @@ pipeline {
                         type: 'MARKDOWN',
                         title: 'spring-boot项目',
                         text: [
-                            '### spring-boot项目',
-                            '状态：${appName}滚动更新失败',
-                            '版本：${BUILD_NUMBER}',
-                            '[查看部署详情](${STATUS_URL})',
-                            '[查看日志Console](${CONSOLE_URL})'
+                            '### Jenkins_job_spring-boot',
+                            '---',
+                            '- 状态：<font color=#FF0000 >${appName}滚动更新失败</font>',
+                            '- 版本：${BUILD_NUMBER}',
+                            '- [查看部署详情](${STATUS_URL})',
+                            '- [查看日志Console](${CONSOLE_URL})'
                         ],
                         at: [
                             '15737927244'
@@ -291,11 +303,12 @@ pipeline {
                         type: 'MARKDOWN',
                         title: 'spring-boot项目',
                         text: [
-                            '### spring-boot项目',
-                            '状态：${appName}回滚成功',
-                            '回滚版本：${BUILD_NUMBER}',
-                            '[查看部署详情](${STATUS_URL})',
-                            '[查看日志Console](${CONSOLE_URL})'
+                            '### Jenkins_job_spring-boot',
+                            '---',
+                            '- 状态：<font color=#00CD00 >${appName}回滚成功</font>',
+                            '- 版本：${BUILD_NUMBER}',
+                            '- [查看部署详情](${STATUS_URL})',
+                            '- [查看日志Console](${CONSOLE_URL})'
                         ],
                         at: [
                             '15737927244'
@@ -308,11 +321,12 @@ pipeline {
                         type: 'MARKDOWN',
                         title: 'spring-boot项目',
                         text: [
-                            '### spring-boot项目',
-                            '状态：${appName}回滚失败',
-                            '回滚版本：${BUILD_NUMBER}',
-                            '[查看部署详情](${STATUS_URL})',
-                            '[查看日志Console](${CONSOLE_URL})'
+                            '### Jenkins_job_spring-boot',
+                            '---',
+                            '- 状态：<font color=#FF0000 >${appName}回滚失败</font>',
+                            '- 版本：${BUILD_NUMBER}',
+                            '- [查看部署详情](${STATUS_URL})',
+                            '- [查看日志Console](${CONSOLE_URL})'
                         ],
                         at: [
                             '15737927244'
