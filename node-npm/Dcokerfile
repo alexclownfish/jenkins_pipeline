@@ -1,0 +1,13 @@
+### centos+node+npm jenkins-slave npm编译前端所调用pod模板
+FROM alexcld/jdk1.8:latest
+LABEL maintainer="Wenzhe Yang <https://blogtest.alexcld.com>"
+USER root 
+RUN mkdir -p /node/{node_gobal,node_cache}
+COPY node-v14.17.3-linux-x64.tar.gz /usr/local/
+RUN tar -zxvf node-v14.17.3-linux-x64.tar.gz && \
+    mv node-v14.17.3-linux-x64 nodejs && \
+    ln -s /usr/local/nodejs/bin/npm /usr/bin/npm && \
+    ln -s /usr/local/nodejs/bin/node /usr/bin/node && \
+    npm config set prefix "/node/node_gobal" && \
+    npm config set cache "/node/node_cache" && \
+    npm config ls
