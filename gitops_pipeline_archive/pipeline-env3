@@ -1,0 +1,305 @@
+pipeline {
+    environment {
+        appName = "province-module"
+        appVersion = "v1.0.1"
+        registryCredential = "harbor-admin"
+        registry = "http://172.22.254.86/"
+        registryDir = "province-module"
+        env1 = "dev"
+        env2 = "qa"
+        env3 = "prod"
+        STATUS_URL = "http://172.22.254.86:32296/job/province-module/${BUILD_NUMBER}/"
+        CONSOLE_URL = "http://172.22.254.86:32296/job/province-module/${BUILD_NUMBER}/console"
+    }
+    agent {
+        kubernetes {
+            inheritFrom 'docker-and-maven-and-kubectl'
+        }
+    }
+    
+    stages {
+        stage ("PULL CODES FROM CANGKU") {
+            when {
+                environment name: 'action',value: 'deploy'
+            }
+            steps {
+                git  credentialsId: 'yangdw1-srdcloud', url: 'https://xxx.xxx.xxx/a/dataSecPlat/rm/xxx'
+            }
+            post {
+                failure {
+                    dingtalk (
+                        robot: '95dc2178-0005-4544-8744-538225ef2ab1',
+                        type: 'MARKDOWN',
+                        title: '数据安全项目',
+                        text: [
+                            '### Jenkins_job_spring-boot',
+                            '---',
+                            '- 状态：<font color=#FF0000 >${appName}拉取代码失败</font>',
+                            '- 版本：${BUILD_NUMBER}',
+                            '- [查看部署详情](${STATUS_URL})',
+                            '- [查看日志Console](${CONSOLE_URL})'
+                        ],
+                        at: [
+                            '15737927244'
+                        ]
+                    )
+                }
+            }
+        }
+        stage ("BUILD JAR") {
+            when {
+                environment name: 'action',value: 'deploy'
+            }
+            steps {
+                container ('maven') {
+                    sh '''
+                    mvn install
+                    cd ./province-module/
+                    mvn clean package -Dmaven.test.skip=true
+                    cp ./target/province-module-1.0-SNAPSHOT.jar ./build-qa/
+                    cp ./target/province-module-1.0-SNAPSHOT.jar ./build-prod/
+                    '''
+                }
+            }
+            post {
+                failure {
+                    dingtalk (
+                        robot: '95dc2178-0005-4544-8744-538225ef2ab1',
+                        type: 'MARKDOWN',
+                        title: '数据安全项目',
+                        text: [
+                            '### Jenkins_job_spring-boot',
+                            '---',
+                            '- 状态：<font color=#FF0000 >${appName}代码编译失败</font>',
+                            '- 版本：${BUILD_NUMBER}',
+                            '- [查看部署详情](${STATUS_URL})',
+                            '- [查看日志Console](${CONSOLE_URL})'
+                        ],
+                        at: [
+                            '15737927244'
+                        ]
+                    )
+                }
+            }
+        }
+        stage ("BUILDING APP IMAGE") {
+            when {
+                environment name: 'action',value: 'deploy'
+            }
+            steps {
+                container ('docker') {
+                    script {
+                        dir("${WORKSPACE}/province-module/") {
+                            dockerImageDev = docker.build  registryDir + "/" + appName + "-" + env1 + "-" + appVersion + ":" + BUILD_NUMBER
+                        }
+                        dir("${WORKSPACE}/province-module/build-qa/") {
+                            dockerImageQa = docker.build  registryDir + "/" + appName + "-" + env2 + "-" + appVersion + ":" + BUILD_NUMBER
+                        }
+                        dir("${WORKSPACE}/province-module/build-prod/") {
+                            dockerImageProd = docker.build  registryDir + "/" + appName + "-" + env3 + "-" + appVersion + ":" + BUILD_NUMBER
+                        }
+                    }
+                }
+            }
+            post {
+                failure {
+                    dingtalk (
+                        robot: '95dc2178-0005-4544-8744-538225ef2ab1',
+                        type: 'MARKDOWN',
+                        title: '数据安全项目',
+                        text: [
+                            '### Jenkins_job_spring-boot',
+                            '---',
+                            '- 状态：<font color=#FF0000 >${appName}镜像打包失败</font>',
+                            '- 版本：${BUILD_NUMBER}',
+                            '- [查看部署详情](${STATUS_URL})',
+                            '- [查看日志Console](${CONSOLE_URL})'
+                        ],
+                        at: [
+                            '15737927244'
+                        ]
+                    )
+                }
+            }
+        }
+        stage ("Push App Image") {
+            when {
+                environment name: 'action',value: 'deploy'
+            }
+            steps {
+                container('docker') {
+                    script {
+                        docker.withRegistry(registry,registryCredential) {
+                            dockerImageDev.push()
+                        }
+                    }
+                    script {
+                        docker.withRegistry(registry,registryCredential) {
+                            dockerImageQa.push()
+                        }
+                    }
+                    script {
+                        docker.withRegistry(registry,registryCredential) {
+                            dockerImageProd.push()
+                        }
+                    }
+                }
+            }
+            post {
+                failure {
+                    dingtalk (
+                        robot: '95dc2178-0005-4544-8744-538225ef2ab1',
+                        type: 'MARKDOWN',
+                        title: '数据安全项目',
+                        text: [
+                            '### Jenkins_job_spring-boot',
+                            '---',
+                            '- 状态：<font color=#FF0000 >${appName}推送镜像失败</font>',
+                            '- 版本：${BUILD_NUMBER}',
+                            '- [查看部署详情](${STATUS_URL})',
+                            '- [查看日志Console](${CONSOLE_URL})'
+                        ],
+                        at: [
+                            '15737927244'
+                        ]
+                    )
+                }
+            }
+        }
+        stage('Pull Source Config File') {
+            steps {
+                git branch: 'master',url:'http://xxx.xxx.xxx:31323/root/spring-boot-deploy.git'
+            }
+            post {
+                failure {
+                    dingtalk (
+                        robot: '95dc2178-0005-4544-8744-538225ef2ab1',
+                        type: 'MARKDOWN',
+                        title: '数据安全项目',
+                        text: [
+                            '### Jenkins_job_spring-boot',
+                            '---',
+                            '- 状态：<font color=#FF0000 >${appName}配置清单拉取失败</font>',
+                            '- 版本：${BUILD_NUMBER}',
+                            '- [查看部署详情](${STATUS_URL})',
+                            '- [查看日志Console](${CONSOLE_URL})'
+                        ],
+                        at: [
+                            '15737927244'
+                        ]
+                    )
+                }
+            }
+        }
+        stage('Apply App Yaml') {
+            when {
+                environment name: 'action',value: 'deploy'
+            }
+            steps {
+                container('kubectl') {
+                    withKubeConfig([credentialsId: 'k8s-cluster-admin-kubeconfig-file']) {
+                        sh '''
+                        sed -ri "s@image: .*@image: 172.22.254.86/province-module/${appName}-${env1}-${appVersion}:${BUILD_NUMBER}@g"  product/province-module/province-module.yaml
+                        sed -ri "s@image: .*@image: 172.22.254.86/province-module/${appName}-${env2}-${appVersion}:${BUILD_NUMBER}@g"  product/province-module/province-module.yaml
+                        sed -ri "s@image: .*@image: 172.22.254.86/province-module/${appName}-${env3}-${appVersion}:${BUILD_NUMBER}@g"  product/province-module/province-module.yaml
+                        kubectl apply -f product/province-module/province-module.yaml --record
+                        '''
+                    }
+                }
+            }
+            post {
+                success {
+                    dingtalk (
+                        robot: '95dc2178-0005-4544-8744-538225ef2ab1',
+                        type: 'ACTION_CARD',
+                        title: '数据安全项目',
+                        text: [
+                            '### Jenkins_job_spring-boot',
+                            '---',
+                            '- 状态：<font color=#00CD00 >${appName}滚动更新成功</font>',
+                            '- 版本：${BUILD_NUMBER}',
+                            '- [查看部署详情](${STATUS_URL})',
+                            '- [查看日志Console](${CONSOLE_URL})'
+                        ],
+                        at: [
+                            '15737927244'
+                        ]
+                    )
+                }
+                failure {
+                    dingtalk (
+                        robot: '95dc2178-0005-4544-8744-538225ef2ab1',
+                        type: 'MARKDOWN',
+                        title: '数据安全项目',
+                        text: [
+                            '### Jenkins_job_spring-boot',
+                            '---',
+                            '- 状态：<font color=#FF0000 >${appName}滚动更新失败</font>',
+                            '- 版本：${BUILD_NUMBER}',
+                            '- [查看部署详情](${STATUS_URL})',
+                            '- [查看日志Console](${CONSOLE_URL})'
+                        ],
+                        at: [
+                            '15737927244'
+                        ]
+                    )
+                }
+            }
+        }
+        stage('Rollback') {
+            when {
+                environment name: 'action',value: 'rollback'
+            }
+            steps {
+                container('kubectl') {
+                    withKubeConfig([credentialsId: 'k8s-cluster-admin-kubeconfig-file']) {
+                        sh '''
+                        sed -ri "s@image: .*@image: 172.22.254.86/province-module/${appName}-${env1}-${appVersion}:${BUILD_NUMBER}@g"  product/province-module/province-module.yaml
+                        sed -ri "s@image: .*@image: 172.22.254.86/province-module/${appName}-${env2}-${appVersion}:${BUILD_NUMBER}@g"  product/province-module/province-module.yaml
+                        sed -ri "s@image: .*@image: 172.22.254.86/province-module/${appName}-${env3}-${appVersion}:${BUILD_NUMBER}@g"  product/province-module/province-module.yaml
+                        kubectl apply -f product/province-module/province-module.yaml --record
+                        '''
+                    }
+                }
+            }
+            post {
+                success {
+                    dingtalk (
+                        robot: '95dc2178-0005-4544-8744-538225ef2ab1',
+                        type: 'MARKDOWN',
+                        title: '数据安全项目',
+                        text: [
+                            '### Jenkins_job_spring-boot',
+                            '---',
+                            '- 状态：<font color=#00CD00 >${appName}回滚成功</font>',
+                            '- 版本：${BUILD_NUMBER}',
+                            '- [查看部署详情](${STATUS_URL})',
+                            '- [查看日志Console](${CONSOLE_URL})'
+                        ],
+                        at: [
+                            '15737927244'
+                        ]
+                    )
+                }
+                failure {
+                    dingtalk (
+                        robot: '95dc2178-0005-4544-8744-538225ef2ab1',
+                        type: 'MARKDOWN',
+                        title: '数据安全项目',
+                        text: [
+                            '### Jenkins_job_spring-boot',
+                            '---',
+                            '- 状态：<font color=#FF0000 >${appName}回滚失败</font>',
+                            '- 版本：${BUILD_NUMBER}',
+                            '- [查看部署详情](${STATUS_URL})',
+                            '- [查看日志Console](${CONSOLE_URL})'
+                        ],
+                        at: [
+                            '15737927244'
+                        ]
+                    )
+                }
+            }
+        }
+    }
+}
